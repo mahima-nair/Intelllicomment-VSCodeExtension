@@ -16,7 +16,7 @@ export function activate(context: vscode.ExtensionContext) {
 	// The command has been defined in the package.json file
 	// Now provide the implementation of the command with registerCommand
 	// The commandId parameter must match the command field in package.json
-	const generateCommentCommand = vscode.commands.registerCommand('commentgenerator.generateComment', async () => {
+	const generateCommentCommand = vscode.commands.registerCommand('intellicomment.generateComment', async () => {
 		//vscode.window.showInformationMessage('Generating comment, please wait!!');
 
 		await vscode.window.withProgress(
@@ -33,6 +33,7 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 
        const selection = editor.selection;
+	   const oldCode = editor.document.getText(selection);
 	   const prompt = await buildPrompt(editor);
 
 	   
@@ -53,20 +54,25 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 
 		// Replace selected text with the comment
-		editor.edit(editBuilder => {
+		await editor.edit(editBuilder => {
 			editBuilder.replace(selection, comment);
 		});
-		vscode.window.showInformationMessage("✅ Comments added successfully");
+		// vscode.window.showInformationMessage("✅ Comments added successfully");
+		// Show Accept/Reject prompt
+vscode.window.showInformationMessage('Comment added. Do you want to keep the changes?', 'Accept', 'Reject')
+    .then(selectionResult => {
+        if (selectionResult === 'Reject') {
+            // Restore the old code
+            editor.edit(editBuilder => {
+                editBuilder.replace(selection, oldCode);
+            });
     }
+})
 	
-);
+	});
 		
 
-		// const fileURI = editor.document.uri;
-		// const fileName = editor.document.fileName;
-		// const currentLine = getCurrentLine(editor);
-
-		// addCommentToFile(fileURI, fileName, currentLine, comment);
+	
 	});
 
 
